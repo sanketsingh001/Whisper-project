@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  ai:
+    build: .
+    command: streamlit run src/app.py --server.port 8501
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
