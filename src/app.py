@@ -1,9 +1,5 @@
 
----
 
-## 5 `src/app.py`
-
-```python
 import streamlit as st, pathlib, subprocess, json, datetime as dt, pandas as pd, sqlite3, os
 from pipelines.metrics import quick_accuracy
 
@@ -21,16 +17,16 @@ with tabs[0]:
         raw = workdir / up.name
         raw.write_bytes(up.read())
         prog = st.progress(0, "Cleaning…")
-        subprocess.run(["python", "-m", "pipelines.cleaner", str(raw)], check=True)
+        subprocess.run(["python", "-m", "src.pipelines.cleaner", str(raw)], check=True)
         prog.progress(25, "Transcribing…")
-        subprocess.run(["python", "-m", "pipelines.asr", str(raw.with_suffix('.clean.wav'))], check=True)
+        subprocess.run(["python", "-m", "src.pipelines.asr", str(raw.with_suffix('.clean.wav'))], check=True)
         prog.progress(60, "Redacting…")
-        subprocess.run(["python", "-m", "pipelines.redactor", str(raw.with_suffix('.clean.txt'))], check=True)
+        subprocess.run(["python", "-m", "src.pipelines.redactor", str(raw.with_suffix('.clean.txt'))], check=True)
         prog.progress(75, "Sentiment & Compliance…")
         sent = json.loads(subprocess.check_output(
-            ["python", "-m", "pipelines.sentiment", str(raw.with_suffix('.clean.redacted.txt'))]))
+            ["python", "-m", "src.pipelines.sentiment", str(raw.with_suffix('.clean.redacted.txt'))]))
         comp = json.loads(subprocess.check_output(
-            ["python", "-m", "pipelines.compliance", str(raw.with_suffix('.clean.redacted.txt'))]))
+            ["python", "-m", "src.pipelines.compliance", str(raw.with_suffix('.clean.redacted.txt'))]))
         txt = raw.with_suffix('.clean.redacted.txt').read_text()
         acc = quick_accuracy(txt)
         prog.progress(100, "Saving…")
