@@ -1,5 +1,5 @@
 import streamlit as st, pathlib, subprocess, json, datetime as dt, pandas as pd, sqlite3, os, sys
-from pipelines.metrics import quick_accuracy
+from pipelines.metrics import accuracy_vs_ref
 import io
 
 
@@ -51,7 +51,7 @@ with tabs[0]:
             st.error(e.stderr.decode()); st.stop()
 
         txt = red_txt.read_text()
-        acc = quick_accuracy(txt)
+        acc = accuracy_vs_ref(clean_txt) 
 
         # ─ Persist
         from pipelines.store import store_row
@@ -73,13 +73,20 @@ with tabs[1]:
     if "latest" in st.session_state:
         st.write(st.session_state["latest"][0])
 
+
 # ───────────────────────────── 3 │ Metrics
 with tabs[2]:
     st.header("📊 Metrics")
     if "latest" in st.session_state:
         _, acc, sent_score, flags = st.session_state["latest"]
         col1, col2 = st.columns(2)
-        col1.metric("Accuracy %", f"{acc*100:.1f}")
+
+        # ← Guard against None
+        if acc is None:
+            col1.metric("Accuracy %", "—")
+        else:
+            col1.metric("Accuracy %", f"{acc*100:.1f}")
+
         col2.metric("Sentiment", f"{sent_score:+.3f}")
         st.write("Compliance flags:", flags or "—")
 
