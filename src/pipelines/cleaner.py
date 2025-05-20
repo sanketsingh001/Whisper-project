@@ -1,15 +1,19 @@
-import subprocess, sys, pathlib
+import subprocess, sys, pathlib, shutil
 
-wav = pathlib.Path(sys.argv[1])
-clean = wav.with_suffix('.clean.wav')
+wav   = pathlib.Path(sys.argv[1])
+clean = wav.with_suffix(".clean.wav")
 
-# Clean audio using SoX
-subprocess.run(["sox", str(wav), str(clean), "highpass", "300"], check=True)
+def sox_available() -> bool:
+    return shutil.which("sox") is not None
 
-# If you want to use rnnoise_wrapper in the future, add here:
-# from rnnoise_wrapper import RNNoise
-# rn = RNNoise()
-# clean.write_bytes(rn.filter_wav(str(clean)))
-# print({"clean": str(clean)})
+if sox_available():
+    try:
+        subprocess.run(["sox", str(wav), str(clean), "highpass", "300"], check=True)
+    except subprocess.CalledProcessError:
+        # fall-back: copy original
+        clean.write_bytes(wav.read_bytes())
+else:
+    # SoX absent – just copy and continue
+    clean.write_bytes(wav.read_bytes())
 
 print({"clean": str(clean)})

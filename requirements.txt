@@ -1,18 +1,35 @@
+# Core pipeline + ASR
 faster-whisper==1.0.2
+
 sentencepiece
 sox
+soundfile
+
+# Text/metrics/compliance
 jiwer
 presidio-analyzer
 presidio-anonymizer
 regex
 langdetect
-transformers==4.40.2
+pyyaml
 scikit-learn
-qdarkstyle
+tabulate
+
+# Streamlit + UI
 streamlit==1.33.0
 streamlit-extras
+qdarkstyle
 pandas
+openpyxl      # <-- required for df.to_excel
+
+# Databases
 sqlite-utils
+
+# PDF export
 PyPDF2
 reportlab
-tabulate
+
+# Transformers/sentiment
+transformers==4.40.2
+huggingface-hub
+tqdm
