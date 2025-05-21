@@ -1,0 +1,41 @@
+# ---------- base image ----------
+# GPU build (CUDA 12.8 LTS, Ubuntu 22.04)
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+# ---- change the above to `python:3.11-slim` for a lightweight CPU build ----
+
+# ---------- system deps ----------
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        python3.11 python3.11-venv python3.11-distutils \
+        git sox libsox-fmt-all ffmpeg build-essential cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+# ---------- virtual-env ----------
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3.11 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# ---------- Python wheels ----------
+# GPU wheel for Torch (remove line for CPU build)
+RUN pip install --no-cache-dir \
+    --extra-index-url https://download.pytorch.org/whl/cu128 \
+    torch==2.2.2+cu128
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ---------- app source ----------
+WORKDIR /app
+COPY . /app
+
+# ---------- Streamlit defaults ----------
+ENV STREAMLIT_SERVER_PORT=8501 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_SERVER_ENABLECORS=false \
+    STREAMLIT_SERVER_ENABLEXSEND=true
+
+EXPOSE 8501
+
+# ---------- run ----------
+CMD ["streamlit", "run", "src/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]

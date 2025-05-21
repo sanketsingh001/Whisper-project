@@ -1,37 +1,54 @@
 from faster_whisper import WhisperModel
 import sys, pathlib, json, datetime as dt
 import torch
-
-wav = pathlib.Path(sys.argv[1])
+import time, soundfile as sf
 
 def load_model():
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    # float16 only on GPU; use int8 on CPU to save RAM
-    compute_type = "float16" if device == "cuda" else "int8"
+    device = "cuda"
+    compute_type = "float16"
     return WhisperModel("large-v3", device=device, compute_type=compute_type)
 
 def transcribe_and_save(wav_path: pathlib.Path):
+    audio_sec = sf.info(wav_path).duration
     model = load_model()
-    segments, _ = model.transcribe(str(wav_path), beam_size=5, word_timestamps=False)
+    t0 = time.perf_counter()
+    segments, _ = model.transcribe(
+        str(wav_path),
+        beam_size=5,
+        task="translate",     # English output (Hinglish)
+        language=None,
+        word_timestamps=False
+    )
+    elapsed = time.perf_counter() - t0
+    rtf = round(elapsed / audio_sec, 2)
 
     txt_path = wav_path.with_suffix(".txt")
     with open(txt_path, "w", encoding="utf-8") as out_f:
         for seg in segments:
-            # Universal access (Segment object or dict)
-            if hasattr(seg, "text"):
-                text = seg.text.strip()
-            elif isinstance(seg, dict) and "text" in seg:
-                text = seg["text"].strip()
-            else:
-                text = ""
+            text = getattr(seg, "text", None) or (seg.get("text") if isinstance(seg, dict) else "")
             if text:
-                out_f.write(text + "\n")
+                out_f.write(text.strip() + "\n")
+    # Improved confidence handling
+    scores = []
+    for seg in segments:
+        val = getattr(seg, "avg_logprob", None)
+        if val is None and isinstance(seg, dict):
+            val = seg.get("avg_logprob")
+        if val is not None:
+            scores.append(val)
+    confidence = sum(scores) / len(scores) if scores else None
 
-    print(json.dumps({"txt": str(txt_path),
-                      "time": dt.datetime.utcnow().isoformat()}))
+    print(json.dumps({
+        "txt": str(txt_path),
+        "avg_logprob": confidence if confidence is not None else "null",
+        "sec": round(elapsed, 2),
+        "rtf": rtf,
+        "time": dt.datetime.utcnow().isoformat()
+    }))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python -m src.pipelines.asr <file.wav>")
         sys.exit(1)
+    wav = pathlib.Path(sys.argv[1])
     transcribe_and_save(wav)

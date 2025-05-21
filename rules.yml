@@ -1,0 +1,26 @@
+# rules.yml  – collection-call checklist (expand any time)
+opening:
+  - "good morning"
+  - "good afternoon"
+  - "good evening"
+  - "namaskar"
+
+disclaimer:
+  - "training and quality"
+  - "quality purpose"
+
+overdue_amount:
+  - "overdue amount"
+  - "pending amount"
+
+reason_for_delay:
+  - "reason for the delay"
+  - "payment karne mai delay"
+
+urgency:
+  - "aaj ke date"
+  - "payment hona jaruri"
+
+closing:
+  - "dhanyavaad"
+  - "thank you"

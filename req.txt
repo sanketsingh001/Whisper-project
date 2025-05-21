@@ -1,0 +1,35 @@
+# ───────── Core / ASR ─────────
+faster-whisper==1.0.2          # pulls CTranslate2
+sentencepiece
+soundfile
+torch==2.2.2+cu128             # CPU? replace with torch==2.2.2+cpu
+
+# ───────── Text / metrics / rules ─────────
+indic-transliteration          # Devanagari → Latin
+jiwer                          # WER
+langdetect
+presidio-analyzer
+presidio-anonymizer
+pyyaml
+rapidfuzz                      # fuzzy matching in coverage / compliance
+regex
+scikit-learn
+tabulate
+unidecode                      # strip diacritics after transliteration
+
+# ───────── UI / Streamlit ─────────
+openpyxl                       # df.to_excel
+pandas
+qdarkstyle
+streamlit==1.33.0
+streamlit-extras               # popover, toast, etc.
+
+# ───────── Transformers / sentiment ─────────
+huggingface-hub
+tqdm
+transformers==4.40.2
+
+# ───────── DB / misc ─────────
+sqlite-utils
+
+# (ffmpeg is a system package; see Dockerfile)
